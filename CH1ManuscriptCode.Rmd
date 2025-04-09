@@ -1,7 +1,7 @@
 ---
-title: "CH1ManuscriptCode"
+title: "RevisedTXManuscript_Code"
 author: "Ana Silverio"
-date: "2024-07-30"
+date: "2025-03-07"
 output:
   pdf_document: default
   html_document:
@@ -14,9 +14,8 @@ always_allow_html: yes
 
 # Manuscript titled: "Assessing the Resistance and Resilience of Important Recreational Fish Species to Extreme Events in Coastal Texas"
 
-## Co-Authors: Ana C. Silverio, Mariah C. Livernois, Dakus Geeslin, Nathan Furey, and Easton R. White
 
-The following is code for all figures and tables and respective calculations in the above mentioned manuscript submitted to AFS Marine and Coastal Fisheries on 11/11/2024. R Code for the calculations, figures and tables within the supplemental can be found in the separate file "Supp_MaterialCH1" in the repository. 
+The following is code for all figures and tables and respective calculations in the above mentioned manuscript submitted to AFS Marine and Coastal Fisheries on 11/11/2024 and revisions for submission on 4/9/2025. R Code for the calculations, figures and tables within the supplemental can be found in the separate file "Supp_MaterialCH1" in the repository. 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, cache = TRUE, warning = FALSE, message = FALSE)
@@ -44,7 +43,7 @@ library(webshot2)
 library(xtable)
 
 #color palette
-colorBlindBlack8 <- c("#000000","#0072B2",  "#56B4E9","#009E73", "#F0E442", "#E69F00","#D55E00","#CC79A7")
+colorBlindBlack8 <- c("#001219","#005f73",  "#0a9396","#94d2bd", "#ee9b00", "#bb3e03","#ca6702","#ae2012")
 
 #readable dates:
 str(bag.seines)
@@ -89,6 +88,10 @@ bag.seines$MAJOR_AREA_CODE <- as.factor(bag.seines$MAJOR_AREA_CODE)
 redDrum_mon_avg <- bag.seines %>%
   group_by(MONTH,YEAR,MAJOR_AREA_CODE) %>%
   summarize(mean(rd_CPUE))
+
+#redDrum_mon_avg <- bag.seines %>% #testing something here, can delete later
+ # group_by(MONTH,YEAR,MAJOR_AREA_CODE) %>%
+ # summarize(mean(rd_CPUE), count = n())
 
 redDrum_mon_avg <- redDrum_mon_avg %>%
   rename("CPUE_AvgRD" = "mean(rd_CPUE)")
@@ -268,20 +271,21 @@ sf <- ggplot(data = SF_mon_avg %>% filter(YEAR > 2013), mapping = aes(x = MDY, y
 ) + theme(axis.text.x = element_text(angle=45, hjust=1))
 
 # arrange all 4 plots into 1 figure -----
-time_series <- ggarrange(rd + rremove("ylab") + rremove("xlab"), sst +rremove("ylab") + rremove("xlab"), bd+rremove("ylab") + rremove("xlab"), sf+rremove("ylab") + rremove("xlab"), labels = NULL, common.legend = TRUE,ncol = 2, nrow = 2, legend = "top", font.label = list(size = 13, face = "bold"))
+time_series <- ggarrange(rd + rremove("ylab") + rremove("xlab"), sst +rremove("ylab") + rremove("xlab"), bd+rremove("ylab") + rremove("xlab"), sf+rremove("ylab") + rremove("xlab"), labels = NULL, common.legend = TRUE,ncol = 2, nrow = 2, legend = "right", font.label = list(size = 13, face = "bold"))
 
-time_series
+#time_series
 
 annotate_figure(time_series,
-                bottom = text_grob("Time", size = 16, hjust = 1),
-                left = text_grob("CPUE (#/hectare)", rot = 90, size = 16))
+                bottom = text_grob("Time", size = 19, hjust = 1),
+                left = text_grob("CPUE (#/hectare)", rot = 90, size = 18))
 
 
 #annotate_figure(aransas_gn_plot, top = text_grob("Aransas Bay Gill Nets and Winter Storm Uri", color = "#8B0000", face = "bold", size = 14))
 
-#ggsave("Figure2_edited.jpg", width = 10, height = 8, units = c("in"), dpi = 300, bg = "white")
+#ggsave("Figure2_revisedManuscript.jpg", width = 10, height = 8, units = c("in"), dpi = 300, bg = "white")
 
 ```
+
 
 # Table 1
 ```{r table 1 corrected, results='hide'}
@@ -389,6 +393,8 @@ FishBiology %>% #i used this style
   
 
 ```
+
+
 
 
 # Baseline Calculations 
@@ -2223,5 +2229,4 @@ annotate_figure(fig.4,
 
 
 ```
-
 
