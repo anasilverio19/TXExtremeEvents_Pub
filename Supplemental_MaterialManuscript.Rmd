@@ -1100,8 +1100,11 @@ kbl(model.1_summary, caption = "Statistical results from a generalized linear mi
 
 ```
 
+Year of study is significant (p-value = 0.009) with each additional year within the 10 year period, it is associated with a 2.6% decline in Red Drum counts. Classification post storm (p-value = <0.001) conditions are associated with a 32.2% increase in Red Drum counts. Classification storm (p-value = 0.877) is not significant, storm conditions do not significantly affect Red Drum counts. So Red Drum counts during the month of Hurricane Harvey are not significantly different to non-storm conditions. 
 
-```{r model.1 residuals and model validation, include = FALSE}
+\newpage
+
+```{r model.1 residuals and model validation}
 #This will eventually be moved to the supplemental materials 
 
 # Extract residuals from your model
@@ -1112,13 +1115,13 @@ ggplot(data = data.frame(residuals_model.1), aes(sample = residuals_model.1)) +
   stat_qq() + 
   stat_qq_line() +
   theme_minimal() +
-  labs(title = "QQ Plot of Residuals")
+  labs(title = "QQ Plot of Residuals for Model 1")
 
 
 
 ```
 
-Year of study is significant (p-value = 0.009) with each additional year within the 10 year period, it is associated with a 2.6% decline in Red Drum counts. Classification post storm (p-value = <0.001) conditions are associated with a 32.2% increase in Red Drum counts. Classification storm (p-value = 0.877) is not significant, storm conditions do not significantly affect Red Drum counts. So Red Drum counts during the month of Hurricane Harvey are not significantly different to non-storm conditions. 
+
 
 
 \newpage
@@ -1197,8 +1200,13 @@ kbl(model.2_summary, caption = "Statistical results from a generalized linear mi
 
 ```
 
+Year of study shows no significant trend (p-value = 0.428) over time year to year in spotted seatrout counts. Classification post-storm are associated with a 21% decline in Spotted Seatrout counts (p-value = 0.0012) while storm designations are associated with a 74.1% decline in Spotted Seatrout counts (p-value <0.001).
 
-```{r model.2 residuals and model validation, include = FALSE}
+\newpage
+
+
+
+```{r model.2 residuals and model validation}
 #This will eventually be moved to the supplemental materials 
 
 # Extract residuals from your model
@@ -1209,12 +1217,12 @@ ggplot(data = data.frame(residuals_model.2), aes(sample = residuals_model.2)) +
   stat_qq() + 
   stat_qq_line() +
   theme_minimal() +
-  labs(title = "QQ Plot of Residuals")
+  labs(title = "QQ Plot of Residuals for Model 2")
 
 ```
 
 
-Year of study shows no significant trend (p-value = 0.428) over time year to year in spotted seatrout counts. Classification post-storm are associated with a 21% decline in Spotted Seatrout counts (p-value = 0.0012) while storm designations are associated with a 74.1% decline in Spotted Seatrout counts (p-value <0.001).
+
 
 
 
@@ -1291,8 +1299,11 @@ kbl(model.3_summary, caption = "Statistical results from a generalized linear mi
 
 ```
 
+Year of study is significant (p-value <0.001) where there is a 18.53% increase year to year over the 10 year period of Black Drum counts. Both classifications post storm and storm are not significant and therefore do not have an effect on Black Drum counts compared to non-storm. 
 
-```{r model.3 residuals and model validation, include = FALSE}
+\newpage
+
+```{r model.3 residuals and model validation}
 #This will eventually be moved to the supplemental materials 
 
 # Extract residuals from your model
@@ -1303,12 +1314,12 @@ ggplot(data = data.frame(residuals_model.3), aes(sample = residuals_model.3)) +
   stat_qq() + 
   stat_qq_line() +
   theme_minimal() +
-  labs(title = "QQ Plot of Residuals")
+  labs(title = "QQ Plot of Residuals for Model 3")
 
 ```
 
 
-Year of study is significant (p-value <0.001) where there is a 18.53% increase year to year over the 10 year period of Black Drum counts. Both classifications post storm and storm are not significant and therefore do not have an effect on Black Drum counts compared to non-storm. 
+
 
 
 
@@ -1387,8 +1398,11 @@ kbl(model.4_summary, caption = "Statistical results from a generalized linear mi
 
 ```
 
+Year of study is significant (p-value 0.0008), indicating a small but significant 4.9% decrease in Southern Flounder counts over the 10 year period. Classification post storm is significant (p-value 0.0036), suggests that in post storm designations, Southern Flounder count is decreasing by 26.7%. Classification storm: though it does show a 67% decrease in Southern Flounder counts in the storm period, it is a non-significant effect. 
 
-```{r model.4 residuals and model validation, include = FALSE}
+\newpage
+
+```{r model.4 residuals and model validation}
 #This will eventually be moved to the supplemental materials 
 
 # Extract residuals from your model
@@ -1399,12 +1413,11 @@ ggplot(data = data.frame(residuals_model.4), aes(sample = residuals_model.4)) +
   stat_qq() + 
   stat_qq_line() +
   theme_minimal() +
-  labs(title = "QQ Plot of Residuals")
+  labs(title = "QQ Plot of Residuals for Model 4")
 
 ```
 
 
-Year of study is significant (p-value 0.0008), indicating a small but significant 4.9% decrease in Southern Flounder counts over the 10 year period. Classification post storm is significant (p-value 0.0036), suggests that in post storm designations, Southern Flounder count is decreasing by 26.7%. Classification storm: though it does show a 67% decrease in Southern Flounder counts in the storm period, it is a non-significant effect. 
 
 
 
@@ -1485,8 +1498,11 @@ kbl(model.5_summary, caption = "Statistical results from a generalized linear mi
 
 ```
 
+Year of study (p-value = 0.063) is not significant effect on Red Drum counts. Classification post storm (p-value = 0.025) conditions are associated with a 16.1% decrease in Red Drum counts. Classification storm (p-value = <0.0001) designations are associated with a statistically significant 63.2% decrease of Red Drum counts.
 
-```{r model.5 residuals and model validation, include = FALSE}
+\newpage
+
+```{r model.5 residuals and model validation}
 #This will eventually be moved to the supplemental materials 
 
 # Extract residuals from your model
@@ -1497,12 +1513,11 @@ ggplot(data = data.frame(residuals_model.5), aes(sample = residuals_model.5)) +
   stat_qq() + 
   stat_qq_line() +
   theme_minimal() +
-  labs(title = "QQ Plot of Residuals")
+  labs(title = "QQ Plot of Residuals for Model 5")
 
 ```
 
 
-Year of study (p-value = 0.063) is not significant effect on Red Drum counts. Classification post storm (p-value = 0.025) conditions are associated with a 16.1% decrease in Red Drum counts. Classification storm (p-value = <0.0001) designations are associated with a statistically significant 63.2% decrease of Red Drum counts.
 
 
 
@@ -1583,8 +1598,11 @@ kbl(model.6_summary, caption = "Statistical results from a generalized linear mi
 
 ```
 
+Year of study is not significant, suggesting no clear long-term trend of spotted seatrout count over the years in the study period. Classifications post storm and storm were found to be non-significant. post storm would be a 5.4% decrease and storm conditions a 3.4% but non-significant decreases. 
 
-```{r model.6 residuals and model validation, include = FALSE}
+\newpage
+
+```{r model.6 residuals and model validation}
 #This will eventually be moved to the supplemental materials 
 
 # Extract residuals from your model
@@ -1595,12 +1613,11 @@ ggplot(data = data.frame(residuals_model.6), aes(sample = residuals_model.6)) +
   stat_qq() + 
   stat_qq_line() +
   theme_minimal() +
-  labs(title = "QQ Plot of Residuals")
+  labs(title = "QQ Plot of Residuals for Model 6")
 
 ```
 
 
-Year of study is not significant, suggesting no clear long-term trend of spotted seatrout count over the years in the study period. Classifications post storm and storm were found to be non-significant. post storm would be a 5.4% decrease and storm conditions a 3.4% but non-significant decreases. 
 
 
 \newpage
@@ -1679,8 +1696,11 @@ kbl(model.7_summary, caption = "Statistical results from a generalized linear mi
 
 ```
 
+Year of study was found to be a significant effect (p value = <0.0001) on Black Drum counts. Suggests an 11.17% increase of Black Drum counts over the course of the study period. Classification post storm has a significant effect (p value = <0.0001), during post storm classifications, Black Drum counts have 81.18% increase compared to non storm. No classification of storm as the catches were 0 for this month and year. 
 
-```{r model.7 residuals and model validation, include = FALSE}
+\newpage
+
+```{r model.7 residuals and model validation}
 #This will eventually be moved to the supplemental materials 
 
 # Extract residuals from your model
@@ -1691,13 +1711,12 @@ ggplot(data = data.frame(residuals_model.7), aes(sample = residuals_model.7)) +
   stat_qq() + 
   stat_qq_line() +
   theme_minimal() +
-  labs(title = "QQ Plot of Residuals")
+  labs(title = "QQ Plot of Residuals Model 7")
 
 
 ```
 
 
-Year of study was found to be a significant effect (p value = <0.0001) on Black Drum counts. Suggests an 11.17% increase of Black Drum counts over the course of the study period. Classification post storm has a significant effect (p value = <0.0001), during post storm classifications, Black Drum counts have 81.18% increase compared to non storm. No classification of storm as the catches were 0 for this month and year. 
 
 
 
@@ -1777,8 +1796,11 @@ kbl(model.8_summary, caption = "Statistical results from a generalized linear mi
 
 ```
 
+Year of study is significant (p value = <0.001), meaning there was a 14.1% decrease/decline in southern flounder counts during the study period. Classification post storm is significant (p value = <0.0001), meaning there was a 178.1% increase. in southern flounder counts compared to non-storm. There is no storm classification as catch was 0 for this fish during the storm month.
 
-```{r model.8 residuals and model validation, include = FALSE}
+ \newpage
+ 
+```{r model.8 residuals and model validation}
 #This will eventually be moved to the supplemental materials 
 
 # Extract residuals from your model
@@ -1789,11 +1811,9 @@ ggplot(data = data.frame(residuals_model.8), aes(sample = residuals_model.7)) +
   stat_qq() + 
   stat_qq_line() +
   theme_minimal() +
-  labs(title = "QQ Plot of Residuals")
+  labs(title = "QQ Plot of Residuals for Model 8")
 
 ```
-
-Year of study is significant (p value = <0.001), meaning there was a 14.1% decrease/decline in southern flounder counts during the study period. Classification post storm is significant (p value = <0.0001), meaning there was a 178.1% increase. in southern flounder counts compared to non-storm. There is no storm classification as catch was 0 for this fish during the storm month.
 
 
 
