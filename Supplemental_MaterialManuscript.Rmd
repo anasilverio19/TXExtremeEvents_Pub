@@ -25,7 +25,7 @@ output:
 
 # Supplemental Materials for: Assessing the Resistance and Resilience of Recreationally Important Fish Species to Extreme Events in Coastal Texas
 
-### Authors: Ana C. Silverio*, Mariah C. Livernois, Dakus Geeslin, and Easton R. White
+
 
 
 
@@ -56,6 +56,14 @@ library(magick)
 library(webshot2)
 library(jtools)
 library(huxtable)
+library(xtable)
+library(tibble)
+library(lme4)
+library(GGally)
+library(performance)
+library(broom)
+library(broom.mixed)
+library(MASS)
 
 
 #color palette
@@ -988,4 +996,806 @@ kable(RE.SF.PerChange.freeze, "latex", booktabs = T, caption = "Southern Flounde
   kable_styling(latex_options = c("HOLD_position","scale_down"), full_width = F)
 
 ```
+
+\newpage
+
+## The following analysis is organized as follows 
+
+A Generalized Mixed Model with a Negative Binomial Distribution for each species (4) in each storm (2)
+
+Hurricane Harvey 
+
+- Red Drum Model = model.1
+- Spotted Seatrout Model = model.2
+- Black Drum Model = model.3
+- Southern Flounder Model = model.4
+
+
+2021 Freeze Storm
+
+- Red Drum Model = model.5
+- Spotted Seatrout Model = model.6
+- Black Drum Model = model.7
+- Southern Flounder Model = model.8
+
+## Hurricane Harvey Models
+
+## Red Drum
+
+Model: Red_drum ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE)
+
+
+
+```{r Set up of the red drum data frame, include=FALSE}
+
+# Select specific columns
+library(dplyr)
+harvey.rd <- bag.seines %>% dplyr::select(`MONTH`, `YEAR`, `MAJOR_AREA_CODE`, `SURFACE_AREA_NUM`, `Red_drum`, `rd_CPUE`) %>% #get the base columns
+  filter(YEAR > 2013) #get it filters for the last 10 years 
+
+harvey.rd$YEAR_OF_STUDY <- harvey.rd$YEAR - min(harvey.rd$YEAR) + 1 #add year of study
+
+harvey.rd$sin <- sin(2*pi*harvey.rd$MONTH/12) #time is a circle 
+harvey.rd$cos <- cos(2*pi*harvey.rd$MONTH/12) #time is a circle
+
+#Classification column
+# Initialize classification column
+harvey.rd$classification <- NA
+
+# Loop through each row
+for (i in 1:nrow(harvey.rd)) {
+  year <- harvey.rd$YEAR[i]
+  month <- harvey.rd$MONTH[i]
+  
+  # Assign classifications based on conditions
+  if (year >= 2014 & year <= 2017 & month <= 7) {
+    harvey.rd$classification[i] <- "no storm"
+  } else if (year == 2017 & month == 8) {
+    harvey.rd$classification[i] <- "storm"
+  } else if ((year == 2017 & month >= 9) | (year >= 2018 & year <= 2019)) {
+    harvey.rd$classification[i] <- "post storm"
+  } else if (year >= 2020 & year <= 2023) {
+    harvey.rd$classification[i] <- "no storm"
+  } 
+}
+# DATA FRAME DONE
+
+```
+
+```{r red drum model, include=FALSE}
+
+### NEW MODEL NB AFTER DATAFRAME CORRECTION WITH CATCH ###
+model.1 <- glmer.nb(
+  Red_drum ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE), data = harvey.rd)
+
+summary(model.1)
+
+
+```
+
+```{r table for red drum model}
+#Table
+
+# Extract a tidy summary
+model.1_summary <- tidy(model.1, effects = "fixed")
+
+# Function to assign asterisks based on significance levels
+add_stars <- function(p) {
+  ifelse(p < 0.001, "***", 
+         ifelse(p < 0.01, "**", 
+                ifelse(p < 0.05, "*", "")))
+}
+
+# Add a significance column with asterisks
+model.1_summary <- model.1_summary %>%
+  mutate(p.value = formatC(p.value, digits = 3),
+         Significance = add_stars(as.numeric(p.value)))  # Add significance stars
+# Rename columns for clarity
+colnames(model.1_summary) <- c("Variable Type", "Covariate","Estimate", "Std.Error", "z value", "p-value", "Significance")
+
+# Format and display the table
+kbl(model.1_summary, caption = "Statistical results from a generalized linear mixed model analyzing how total Red Drum counts is influenced by month, year of study and storm classification type during Hurricane Harvey with major bay region as a random effect in a ten year period (2014-2023).", digits = 4, align = "c") %>%
+  kable_styling(latex_options = c("striped", "hold_position")) %>%
+  row_spec(0, bold = TRUE) # Bold column names
+
+```
+
+
+```{r model.1 residuals and model validation, include = FALSE}
+#This will eventually be moved to the supplemental materials 
+
+# Extract residuals from your model
+residuals_model.1 <- residuals(model.1)
+
+# Create the QQ plot using ggplot2
+ggplot(data = data.frame(residuals_model.1), aes(sample = residuals_model.1)) +
+  stat_qq() + 
+  stat_qq_line() +
+  theme_minimal() +
+  labs(title = "QQ Plot of Residuals")
+
+
+
+```
+
+Year of study is significant (p-value = 0.009) with each additional year within the 10 year period, it is associated with a 2.6% decline in Red Drum counts. Classification post storm (p-value = <0.001) conditions are associated with a 32.2% increase in Red Drum counts. Classification storm (p-value = 0.877) is not significant, storm conditions do not significantly affect Red Drum counts. So Red Drum counts during the month of Hurricane Harvey are not significantly different to non-storm conditions. 
+
+
+\newpage
+
+## Spotted Seatrout
+
+Model: Spotted_seatrout ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE)
+
+```{r Set up of the spotted seatrout data frame, include=FALSE}
+# Select specific columns
+library(dplyr)
+harvey.sst <- bag.seines %>% dplyr::select(`MONTH`, `YEAR`, `MAJOR_AREA_CODE`, `SURFACE_AREA_NUM`, `Spotted_seatrout`, `sst_CPUE`) %>% #get the base columns
+  filter(YEAR > 2013) #get it filters for the last 10 years 
+
+harvey.sst$YEAR_OF_STUDY <- harvey.sst$YEAR - min(harvey.sst$YEAR) + 1 #add year of study
+
+harvey.sst$sin <- sin(2*pi*harvey.sst$MONTH/12) #time is a circle 
+harvey.sst$cos <- cos(2*pi*harvey.sst$MONTH/12) #time is a circle
+
+#Classification column
+# Initialize classification column
+harvey.sst$classification <- NA
+
+
+# Loop through each row
+for (i in 1:nrow(harvey.sst)) {
+  year <- harvey.sst$YEAR[i]
+  month <- harvey.sst$MONTH[i]
+  
+  # Assign classifications based on conditions
+  if (year >= 2014 & year <= 2017 & month <= 7) {
+    harvey.sst$classification[i] <- "no storm"
+  } else if (year == 2017 & month == 8) {
+    harvey.sst$classification[i] <- "storm"
+  } else if ((year == 2017 & month >= 9) | (year >= 2018 & year <= 2019)) {
+    harvey.sst$classification[i] <- "post storm"
+  } else if (year >= 2020 & year <= 2023) {
+    harvey.sst$classification[i] <- "no storm"
+  } 
+}
+# DATA FRAME DONE
+
+```
+
+```{r spotted seatrout model, include=FALSE}
+
+### NEW MODEL NB AFTER DATAFRAME CORRECTION WITH CATCH ###
+model.2 <- glmer.nb(
+  Spotted_seatrout ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE), data = harvey.sst)
+
+summary(model.2)
+
+
+```
+
+```{r table for spotted seatrout model}
+#Table
+
+# Extract a tidy summary
+model.2_summary <- tidy(model.2, effects = "fixed")
+
+
+# Add a significance column with asterisks
+model.2_summary <- model.2_summary %>%
+  mutate(p.value = formatC(p.value, digits = 3), 
+         Significance = add_stars(as.numeric(p.value)))  # Add significance stars
+
+
+# Rename columns for clarity
+colnames(model.2_summary) <- c("Variable Type", "Covariate","Estimate", "Std.Error", "z value", "p-value", "Significance")
+
+# Format and display the table
+kbl(model.2_summary, caption = "Statistical results from a generalized linear mixed model analyzing how total Spotted Seatrout counts is influenced by month, year of study and storm classification type during Hurricane Harvey with major bay region as a random effect in a ten year period (2014-2023).", digits = 4, align = "c") %>%
+  kable_styling(latex_options = c("striped", "hold_position")) %>%
+  row_spec(0, bold = TRUE) # Bold column names
+
+```
+
+
+```{r model.2 residuals and model validation, include = FALSE}
+#This will eventually be moved to the supplemental materials 
+
+# Extract residuals from your model
+residuals_model.2 <- residuals(model.2)
+
+# Create the QQ plot using ggplot2
+ggplot(data = data.frame(residuals_model.2), aes(sample = residuals_model.2)) +
+  stat_qq() + 
+  stat_qq_line() +
+  theme_minimal() +
+  labs(title = "QQ Plot of Residuals")
+
+```
+
+
+Year of study shows no significant trend (p-value = 0.428) over time year to year in spotted seatrout counts. Classification post-storm are associated with a 21% decline in Spotted Seatrout counts (p-value = 0.0012) while storm designations are associated with a 74.1% decline in Spotted Seatrout counts (p-value <0.001).
+
+
+
+\newpage
+
+## Black Drum
+
+Model: Black_drum ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE)
+
+```{r Set up of the black drum data frame, include=FALSE}
+# Select specific columns
+library(dplyr)
+harvey.bd <- bag.seines %>% dplyr::select(`MONTH`, `YEAR`, `MAJOR_AREA_CODE`, `SURFACE_AREA_NUM`, `Black_drum`, `bd_CPUE`) %>% #get the base columns
+  filter(YEAR > 2013) #get it filters for the last 10 years 
+
+harvey.bd$YEAR_OF_STUDY <- harvey.bd$YEAR - min(harvey.bd$YEAR) + 1 #add year of study
+
+harvey.bd$sin <- sin(2*pi*harvey.bd$MONTH/12) #time is a circle 
+harvey.bd$cos <- cos(2*pi*harvey.bd$MONTH/12) #time is a circle
+
+#Classification column
+# Initialize classification column
+harvey.bd$classification <- NA
+
+
+# Loop through each row
+for (i in 1:nrow(harvey.bd)) {
+  year <- harvey.bd$YEAR[i]
+  month <- harvey.bd$MONTH[i]
+  
+  # Assign classifications based on conditions
+  if (year >= 2014 & year <= 2017 & month <= 7) {
+    harvey.bd$classification[i] <- "no storm"
+  } else if (year == 2017 & month == 8) {
+    harvey.bd$classification[i] <- "storm"
+  } else if ((year == 2017 & month >= 9) | (year >= 2018 & year <= 2019)) {
+    harvey.bd$classification[i] <- "post storm"
+  } else if (year >= 2020 & year <= 2023) {
+    harvey.bd$classification[i] <- "no storm"
+  } 
+}
+# DATA FRAME DONE
+
+```
+
+```{r black drum model, include=FALSE}
+
+### NEW MODEL NB AFTER DATAFRAME CORRECTION WITH CATCH ###
+model.3 <- glmer.nb(
+  Black_drum ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE), data = harvey.bd)
+
+summary(model.3)
+
+```
+
+```{r table for black drum model}
+#Table
+
+# Extract a tidy summary
+model.3_summary <- tidy(model.3, effects = "fixed")
+
+# Add a significance column with asterisks
+model.3_summary <- model.3_summary %>%
+  mutate(p.value = formatC(p.value, digits = 3), 
+         Significance = add_stars(as.numeric(p.value)))  # Add significance stars
+
+# Rename columns for clarity
+colnames(model.3_summary) <- c("Variable Type", "Covariate","Estimate", "Std.Error", "z value", "p-value","Significance")
+
+# Format and display the table
+kbl(model.3_summary, caption = "Statistical results from a generalized linear mixed model analyzing how total Black Drum counts is influenced by month, year of study and storm classification type during Hurricane Harvey with major bay region as a random effect in a ten year period (2014-2023).", digits = 4, align = "c") %>%
+  kable_styling(latex_options = c("striped", "hold_position")) %>%
+  row_spec(0, bold = TRUE) # Bold column names
+
+```
+
+
+```{r model.3 residuals and model validation, include = FALSE}
+#This will eventually be moved to the supplemental materials 
+
+# Extract residuals from your model
+residuals_model.3 <- residuals(model.3)
+
+# Create the QQ plot using ggplot2
+ggplot(data = data.frame(residuals_model.3), aes(sample = residuals_model.3)) +
+  stat_qq() + 
+  stat_qq_line() +
+  theme_minimal() +
+  labs(title = "QQ Plot of Residuals")
+
+```
+
+
+Year of study is significant (p-value <0.001) where there is a 18.53% increase year to year over the 10 year period of Black Drum counts. Both classifications post storm and storm are not significant and therefore do not have an effect on Black Drum counts compared to non-storm. 
+
+
+
+
+
+\newpage
+
+## Southern Flounder 
+
+Model: Southern_flounder ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE)
+
+```{r Set up of the southern flounder data frame, include=FALSE}
+# Select specific columns
+library(dplyr)
+harvey.sf <- bag.seines %>% dplyr::select(`MONTH`, `YEAR`, `MAJOR_AREA_CODE`, `SURFACE_AREA_NUM`, `Southern_flounder`, `sf_CPUE`) %>% #get the base columns
+  filter(YEAR > 2013) #get it filters for the last 10 years 
+
+harvey.sf$YEAR_OF_STUDY <- harvey.sf$YEAR - min(harvey.sf$YEAR) + 1 #add year of study
+
+harvey.sf$sin <- sin(2*pi*harvey.sf$MONTH/12) #time is a circle 
+harvey.sf$cos <- cos(2*pi*harvey.sf$MONTH/12) #time is a circle
+
+#Classification column
+# Initialize classification column
+harvey.sf$classification <- NA
+
+
+# Loop through each row
+for (i in 1:nrow(harvey.sf)) {
+  year <- harvey.sf$YEAR[i]
+  month <- harvey.sf$MONTH[i]
+  
+  # Assign classifications based on conditions
+  if (year >= 2014 & year <= 2017 & month <= 7) {
+    harvey.sf$classification[i] <- "no storm"
+  } else if (year == 2017 & month == 8) {
+    harvey.sf$classification[i] <- "storm"
+  } else if ((year == 2017 & month >= 9) | (year >= 2018 & year <= 2019)) {
+    harvey.sf$classification[i] <- "post storm"
+  } else if (year >= 2020 & year <= 2023) {
+    harvey.sf$classification[i] <- "no storm"
+  } 
+}
+# DATA FRAME DONE
+
+```
+
+```{r southern flounder model, include=FALSE}
+
+### NEW MODEL NB AFTER DATAFRAME CORRECTION WITH CATCH ###
+model.4 <- glmer.nb(
+  Southern_flounder ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE), data = harvey.sf)
+
+summary(model.4)
+
+```
+
+```{r table for southern flounder model}
+#Table
+
+# Extract a tidy summary
+model.4_summary <- tidy(model.4, effects = "fixed")
+
+# Add a significance column with asterisks
+model.4_summary <- model.4_summary %>%
+  mutate(p.value = formatC(p.value, digits = 3),  
+         Significance = add_stars(as.numeric(p.value)))  # Add significance stars
+
+# Rename columns for clarity
+colnames(model.4_summary) <- c("Variable Type", "Covariate","Estimate", "Std.Error", "z value", "p-value", "Significance")
+
+# Format and display the table
+kbl(model.4_summary, caption = "Statistical results from a generalized linear mixed model analyzing how total Southern Flounder counts is influenced by month, year of study and storm classification type during Hurricane Harvey with major bay region as a random effect in a ten year period (2014-2023).", digits = 4, align = "c") %>%
+  kable_styling(latex_options = c("striped", "hold_position")) %>%
+  row_spec(0, bold = TRUE) # Bold column names
+
+```
+
+
+```{r model.4 residuals and model validation, include = FALSE}
+#This will eventually be moved to the supplemental materials 
+
+# Extract residuals from your model
+residuals_model.4 <- residuals(model.4)
+
+# Create the QQ plot using ggplot2
+ggplot(data = data.frame(residuals_model.4), aes(sample = residuals_model.4)) +
+  stat_qq() + 
+  stat_qq_line() +
+  theme_minimal() +
+  labs(title = "QQ Plot of Residuals")
+
+```
+
+
+Year of study is significant (p-value 0.0008), indicating a small but significant 4.9% decrease in Southern Flounder counts over the 10 year period. Classification post storm is significant (p-value 0.0036), suggests that in post storm designations, Southern Flounder count is decreasing by 26.7%. Classification storm: though it does show a 67% decrease in Southern Flounder counts in the storm period, it is a non-significant effect. 
+
+
+
+
+\newpage
+
+## 2021 Freeze 
+
+
+# Red Drum 
+
+Model: Red_drum ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE)
+
+```{r freeze red drum set up data frame, include=FALSE}
+
+# Select specific columns
+library(dplyr)
+freeze.rd <- bag.seines %>% dplyr::select(`MONTH`, `YEAR`, `MAJOR_AREA_CODE`, `SURFACE_AREA_NUM`, `Red_drum`, `rd_CPUE`) %>% #get the base columns
+  filter(YEAR > 2013) #get it filters for the last 10 years 
+
+freeze.rd$YEAR_OF_STUDY <- freeze.rd$YEAR - min(freeze.rd$YEAR) + 1 #add year of study
+
+freeze.rd$sin <- sin(2*pi*freeze.rd$MONTH/12) #time is a circle 
+freeze.rd$cos <- cos(2*pi*freeze.rd$MONTH/12) #time is a circle
+
+#Classification column
+# Initialize classification column
+freeze.rd$classification <- NA
+
+# Loop through each row
+for (i in 1:nrow(freeze.rd)) {
+  year <- freeze.rd$YEAR[i]
+  month <- freeze.rd$MONTH[i]
+  
+    # Assign classifications based on conditions
+  if (year >= 2014 & (year < 2021 | (year == 2021 & month <= 1))) {
+    freeze.rd$classification[i] <- "no storm"
+  } else if (year == 2021 & month == 2) {
+    freeze.rd$classification[i] <- "storm"
+  } else if ((year == 2021 & month >= 3) | (year == 2022) | (year == 2023 & month <= 3)) {
+    freeze.rd$classification[i] <- "post storm"
+  } else if (year == 2023 & month >= 4 & month <= 6) {
+    freeze.rd$classification[i] <- "no storm"
+  } 
+}
+# DATA FRAME DONE
+
+```
+
+```{r freeze red drum model, include=FALSE}
+
+### NEW MODEL NB AFTER DATAFRAME CORRECTION WITH CATCH ###
+model.5 <- glmer.nb(
+  Red_drum ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE), data = freeze.rd)
+
+summary(model.5)
+
+```
+
+```{r table for freeze red drum model}
+#Table
+
+# Extract a tidy summary
+model.5_summary <- tidy(model.5, effects = "fixed")
+
+# Add a significance column with asterisks
+model.5_summary <- model.5_summary %>%
+  mutate(p.value = formatC(p.value, digits = 3), 
+         Significance = add_stars(as.numeric(p.value)))  # Add significance stars
+
+# Rename columns for clarity
+colnames(model.5_summary) <- c("Variable Type", "Covariate","Estimate", "Std.Error", "z value", "p-value", "Significance")
+
+# Format and display the table
+kbl(model.5_summary, caption = "Statistical results from a generalized linear mixed model analyzing how total Red Drum counts is influenced by month, year of study and storm classification type during the 2021 Freeze with major bay region as a random effect in a ten year period (2014-2023).", digits = 4, align = "c") %>%
+  kable_styling(latex_options = c("striped", "hold_position")) %>%
+  row_spec(0, bold = TRUE) # Bold column names
+
+```
+
+
+```{r model.5 residuals and model validation, include = FALSE}
+#This will eventually be moved to the supplemental materials 
+
+# Extract residuals from your model
+residuals_model.5 <- residuals(model.5)
+
+# Create the QQ plot using ggplot2
+ggplot(data = data.frame(residuals_model.5), aes(sample = residuals_model.5)) +
+  stat_qq() + 
+  stat_qq_line() +
+  theme_minimal() +
+  labs(title = "QQ Plot of Residuals")
+
+```
+
+
+Year of study (p-value = 0.063) is not significant effect on Red Drum counts. Classification post storm (p-value = 0.025) conditions are associated with a 16.1% decrease in Red Drum counts. Classification storm (p-value = <0.0001) designations are associated with a statistically significant 63.2% decrease of Red Drum counts.
+
+
+
+
+\newpage
+
+## Spotted Seatrout 
+
+
+Model: Spotted_seatrout ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE)
+
+```{r freeze spotted seatrout set up data frame, include=FALSE}
+
+# Select specific columns
+library(dplyr)
+freeze.sst <- bag.seines %>% dplyr::select(`MONTH`, `YEAR`, `MAJOR_AREA_CODE`, `SURFACE_AREA_NUM`, `Spotted_seatrout`, `sst_CPUE`) %>% #get the base columns
+  filter(YEAR > 2013) #get it filters for the last 10 years 
+
+freeze.sst$YEAR_OF_STUDY <- freeze.sst$YEAR - min(freeze.sst$YEAR) + 1 #add year of study
+
+freeze.sst$sin <- sin(2*pi*freeze.sst$MONTH/12) #time is a circle 
+freeze.sst$cos <- cos(2*pi*freeze.sst$MONTH/12) #time is a circle
+
+#Classification column
+# Initialize classification column
+freeze.sst$classification <- NA
+
+# Loop through each row
+for (i in 1:nrow(freeze.sst)) {
+  year <- freeze.sst$YEAR[i]
+  month <- freeze.sst$MONTH[i]
+  
+    # Assign classifications based on conditions
+  if (year >= 2014 & (year < 2021 | (year == 2021 & month <= 1))) {
+    freeze.sst$classification[i] <- "no storm"
+  } else if (year == 2021 & month == 2) {
+    freeze.sst$classification[i] <- "storm"
+  } else if ((year == 2021 & month >= 3) | (year == 2022) | (year == 2023 & month <= 3)) {
+    freeze.sst$classification[i] <- "post storm"
+  } else if (year == 2023 & month >= 4 & month <= 6) {
+    freeze.sst$classification[i] <- "no storm"
+  } 
+}
+# DATA FRAME DONE
+
+```
+
+```{r freeze spotted seatrout model, include=FALSE}
+
+### NEW MODEL NB AFTER DATAFRAME CORRECTION WITH CATCH ###
+model.6 <- glmer.nb(
+  Spotted_seatrout ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE), data = freeze.sst)
+
+summary(model.6)
+
+
+
+```
+
+```{r table for freeze spotted seatrout model}
+#Table
+
+# Extract a tidy summary
+model.6_summary <- tidy(model.6, effects = "fixed")
+
+# Add a significance column with asterisks
+model.6_summary <- model.6_summary %>%
+  mutate(p.value = formatC(p.value, digits = 3),
+         Significance = add_stars(as.numeric(p.value)))  # Add significance stars
+
+# Rename columns for clarity
+colnames(model.6_summary) <- c("Variable Type", "Covariate","Estimate", "Std.Error", "z value", "p-value", "Significance")
+
+# Format and display the table
+kbl(model.6_summary, caption = "Statistical results from a generalized linear mixed model analyzing how total Spotted Seatrout counts is influenced by month, year of study and storm classification type during the 2021 Freeze with major bay region as a random effect in a ten year period (2014-2023).", digits = 4, align = "c") %>%
+  kable_styling(latex_options = c("striped", "hold_position")) %>%
+  row_spec(0, bold = TRUE) # Bold column names
+
+```
+
+
+```{r model.6 residuals and model validation, include = FALSE}
+#This will eventually be moved to the supplemental materials 
+
+# Extract residuals from your model
+residuals_model.6 <- residuals(model.6)
+
+# Create the QQ plot using ggplot2
+ggplot(data = data.frame(residuals_model.6), aes(sample = residuals_model.6)) +
+  stat_qq() + 
+  stat_qq_line() +
+  theme_minimal() +
+  labs(title = "QQ Plot of Residuals")
+
+```
+
+
+Year of study is not significant, suggesting no clear long-term trend of spotted seatrout count over the years in the study period. Classifications post storm and storm were found to be non-significant. post storm would be a 5.4% decrease and storm conditions a 3.4% but non-significant decreases. 
+
+
+\newpage
+
+
+## Black Drum
+
+Model: Black_drum ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE)
+
+```{r freeze black drum set up data frame, include=FALSE}
+
+# Select specific columns
+library(dplyr)
+freeze.bd <- bag.seines %>% dplyr::select(`MONTH`, `YEAR`, `MAJOR_AREA_CODE`, `SURFACE_AREA_NUM`, `Black_drum`, `bd_CPUE`) %>% #get the base columns
+  filter(YEAR > 2013) #get it filters for the last 10 years 
+
+freeze.bd$YEAR_OF_STUDY <- freeze.bd$YEAR - min(freeze.bd$YEAR) + 1 #add year of study
+
+freeze.bd$sin <- sin(2*pi*freeze.bd$MONTH/12) #time is a circle 
+freeze.bd$cos <- cos(2*pi*freeze.bd$MONTH/12) #time is a circle
+
+#Classification column
+#Initialize classification column
+freeze.bd$classification <- NA
+
+# Loop through each row
+for (i in 1:nrow(freeze.bd)) {
+  year <- freeze.bd$YEAR[i]
+  month <- freeze.bd$MONTH[i]
+  
+    # Assign classifications based on conditions
+  if (year >= 2014 & (year < 2021 | (year == 2021 & month <= 1))) {
+    freeze.bd$classification[i] <- "no storm"
+  } else if ((year == 2021 & month >= 3) | (year == 2022) | (year == 2023 & month <= 3)) {
+    freeze.bd$classification[i] <- "post storm"
+  } else if (year == 2023 & month >= 4 & month <= 6) {
+    freeze.bd$classification[i] <- "no storm"
+  } 
+}
+
+#Remove February of 2021 because catch was 0 
+freeze.bd <- na.omit(freeze.bd)
+
+# DATA FRAME DONE
+
+```
+
+```{r freeze black drum model, include=FALSE}
+
+### NEW MODEL NB AFTER DATAFRAME CORRECTION WITH CATCH ###
+model.7 <- glmer.nb(
+  Black_drum ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE), data = freeze.bd)
+
+summary(model.7)
+
+```
+
+```{r table for freeze black drum model}
+#Table
+
+# Extract a tidy summary
+model.7_summary <- tidy(model.7, effects = "fixed")
+
+# Add a significance column with asterisks
+model.7_summary <- model.7_summary %>%
+  mutate(p.value = formatC(p.value, digits = 3),  
+         Significance = add_stars(as.numeric(p.value)))  # Add significance stars
+
+# Rename columns for clarity
+colnames(model.7_summary) <- c("Variable Type", "Covariate","Estimate", "Std.Error", "z value", "p-value", "Significance")
+
+# Format and display the table
+kbl(model.7_summary, caption = "Statistical results from a generalized linear mixed model analyzing how total Black Drum counts is influenced by month, year of study and storm classification type during the 2021 Freeze with major bay region as a random effect in a ten year period (2014-2023).", digits = 4, align = "c") %>%
+  kable_styling(latex_options = c("striped", "hold_position")) %>%
+  row_spec(0, bold = TRUE) # Bold column names
+
+```
+
+
+```{r model.7 residuals and model validation, include = FALSE}
+#This will eventually be moved to the supplemental materials 
+
+# Extract residuals from your model
+residuals_model.7 <- residuals(model.7)
+
+# Create the QQ plot using ggplot2
+ggplot(data = data.frame(residuals_model.7), aes(sample = residuals_model.7)) +
+  stat_qq() + 
+  stat_qq_line() +
+  theme_minimal() +
+  labs(title = "QQ Plot of Residuals")
+
+
+```
+
+
+Year of study was found to be a significant effect (p value = <0.0001) on Black Drum counts. Suggests an 11.17% increase of Black Drum counts over the course of the study period. Classification post storm has a significant effect (p value = <0.0001), during post storm classifications, Black Drum counts have 81.18% increase compared to non storm. No classification of storm as the catches were 0 for this month and year. 
+
+
+
+
+\newpage
+
+## Southern Flounder 
+
+Model: Southern_flounder ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE)
+
+```{r freeze southern flounder set up data frame, include=FALSE}
+
+# Select specific columns
+library(dplyr)
+freeze.sf <- bag.seines %>% dplyr::select(`MONTH`, `YEAR`, `MAJOR_AREA_CODE`, `SURFACE_AREA_NUM`, `Southern_flounder`, `sf_CPUE`) %>% #get the base columns
+  filter(YEAR > 2013) #get it filters for the last 10 years 
+
+freeze.sf$YEAR_OF_STUDY <- freeze.sf$YEAR - min(freeze.sf$YEAR) + 1 #add year of study
+
+freeze.sf$sin <- sin(2*pi*freeze.sf$MONTH/12) #time is a circle 
+freeze.sf$cos <- cos(2*pi*freeze.sf$MONTH/12) #time is a circle
+
+#Classification column
+# Initialize classification column
+freeze.sf$classification <- NA
+
+# Loop through each row
+for (i in 1:nrow(freeze.sf)) {
+  year <- freeze.sf$YEAR[i]
+  month <- freeze.sf$MONTH[i]
+  
+    # Assign classifications based on conditions
+  if (year >= 2014 & (year < 2021 | (year == 2021 & month <= 1))) {
+    freeze.sf$classification[i] <- "no storm"
+  } else if ((year == 2021 & month >= 3) | (year == 2022) | (year == 2023 & month <= 3)) {
+    freeze.sf$classification[i] <- "post storm"
+  } else if (year == 2023 & month >= 4 & month <= 6) {
+    freeze.sf$classification[i] <- "no storm"
+  } 
+}
+
+#Remove February of 2021 because catch was 0 
+freeze.sf <- na.omit(freeze.sf)
+
+# DATA FRAME DONE
+
+```
+
+```{r freeze southern flounder model, include=FALSE}
+
+### NEW MODEL NB AFTER DATAFRAME CORRECTION WITH CATCH ###
+model.8 <- glmer.nb(
+  Southern_flounder ~ sin + cos + YEAR_OF_STUDY + classification  + (1 | MAJOR_AREA_CODE), data = freeze.sf)
+
+summary(model.8)
+
+```
+
+```{r table for freeze southern flounder model }
+#Table
+
+# Extract a tidy summary
+model.8_summary <- tidy(model.8, effects = "fixed")
+
+# Add a significance column with asterisks
+model.8_summary <- model.8_summary %>%
+  mutate(p.value = formatC(p.value, digits = 3),  
+         Significance = add_stars(as.numeric(p.value)))  # Add significance stars
+
+# Rename columns for clarity
+colnames(model.8_summary) <- c("Variable Type", "Covariate","Estimate", "Std.Error", "z value", "p-value", "Significance")
+
+# Format and display the table
+kbl(model.8_summary, caption = "Statistical results from a generalized linear mixed model analyzing how total Southern Flounder counts is influenced by month, year of study and storm classification type during the 2021 Freeze with major bay region as a random effect in a ten year period (2014-2023).", digits = 4, align = "c") %>%
+  kable_styling(latex_options = c("striped", "hold_position")) %>%
+  row_spec(0, bold = TRUE) # Bold column names
+
+```
+
+
+```{r model.8 residuals and model validation, include = FALSE}
+#This will eventually be moved to the supplemental materials 
+
+# Extract residuals from your model
+residuals_model.8 <- residuals(model.8)
+
+# Create the QQ plot using ggplot2
+ggplot(data = data.frame(residuals_model.8), aes(sample = residuals_model.7)) +
+  stat_qq() + 
+  stat_qq_line() +
+  theme_minimal() +
+  labs(title = "QQ Plot of Residuals")
+
+```
+
+Year of study is significant (p value = <0.001), meaning there was a 14.1% decrease/decline in southern flounder counts during the study period. Classification post storm is significant (p value = <0.0001), meaning there was a 178.1% increase. in southern flounder counts compared to non-storm. There is no storm classification as catch was 0 for this fish during the storm month.
+
+
+
+
 
